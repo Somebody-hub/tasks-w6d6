@@ -14,7 +14,7 @@ public class Main {
 
     public void run() {
         boolean running = true;
-
+        final int allOptions = 13;
         while (running) {
             printMenu();
             int choice = rdInt("Select option: ");
@@ -38,7 +38,7 @@ public class Main {
                 }
                 default -> System.out.println("Invalid option. Try again");
             }
-            if (running && choice >= 1 && choice <= 13) rdString("Press Enter for menu");
+            if (running && choice >= 1 && choice <= allOptions) rdString("Press Enter for menu");
         }
     }
 

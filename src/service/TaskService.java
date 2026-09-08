@@ -14,6 +14,7 @@ public class TaskService {
 
     private final TaskStatistics taskStatistics = new TaskStatistics();
 
+    //Добавляет задачу проверяет значения
     public Task addTask(String title, String description, TaskPriority priority) {
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("The title can not be empty");
@@ -27,6 +28,7 @@ public class TaskService {
         return task;
     }
 
+    //Печатает задачи с листа
     public void printTasks(List<Task> taskList) {
         if (taskList == null || taskList.isEmpty()) {
             System.out.println("Task list is empty.");
@@ -37,6 +39,7 @@ public class TaskService {
         }
     }
 
+    //Печатает все задачи
     public void printAllTasks() {
         if (tasks == null || tasks.isEmpty()) {
             System.out.println("Task list is empty.");
@@ -47,10 +50,12 @@ public class TaskService {
         }
     }
 
+    //Поиск в Map по ID
     public Task findById(int id) {
         return taskById.getOrDefault(id, null);
     }
 
+    //Поиск по названию
     public List<Task> findByTitle(String title) {
         if (title == null || title.isBlank()) return List.of();
         String search = title.trim().toLowerCase();
@@ -59,6 +64,7 @@ public class TaskService {
                 .toList();
     }
 
+    //Смена статуса
     public boolean changeStatus(int id, TaskStatus newStatus) {
         Task task = taskById.get(id);
         if (task == null || newStatus == null) return false;
@@ -66,6 +72,7 @@ public class TaskService {
         return true;
     }
 
+    //Смена приоритета
     public boolean changePriority(int id, TaskPriority newPriority) {
         Task task = taskById.get(id);
         if (task == null || newPriority == null) return false;
@@ -73,6 +80,7 @@ public class TaskService {
         return true;
     }
 
+    //Удаление задачи, проверка ID
     public boolean removeTask(int id) {
         Task task = taskById.get(id);
         if (task == null) return false;
@@ -81,6 +89,7 @@ public class TaskService {
         return true;
     }
 
+    //Добаление тэга
     public boolean addTag(int id, String tag) {
         Task task = taskById.get(id);
         if (task == null || tag == null || tag.isBlank()) return false;
@@ -88,6 +97,7 @@ public class TaskService {
         return true;
     }
 
+    //Поиск задач по тэгам
     public List<Task> findByTag(String tag) {
         if (tag == null || tag.isBlank()) return List.of();
         String searchTag = tag.trim().toLowerCase();
@@ -96,26 +106,26 @@ public class TaskService {
                 .toList();
     }
 
+    //Расчёт статуса
     public Map<TaskStatus, Integer> countByStatus() {
         return taskStatistics.calculateStatusCounts(tasks);
     }
 
+    //Возвращает отсортиованный лист по приоритету
     public List<Task> sortByPriority() {
         return tasks.stream()
                 .sorted(new TaskPriorityComparator())
                 .toList();
     }
 
+    //Возвращает лист отсортированный по названиям
     public List<Task> sortByTitle() {
         return tasks.stream()
                 .sorted(new TaskTitleComparator())
                 .toList();
     }
 
-    public String getCompletionRate() {
-        return String.format("Completion %.1f%% \n", taskStatistics.calculateCompletionRate(tasks));
-    }
-
+    //Вывод общей статистики
     public String getProjectSummary() {
         Map<TaskStatus, Integer> stats = countByStatus();
         return String.format(

@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public class TaskStatistics {
+
+    //Расчёт по статусу
     public Map<TaskStatus, Integer> calculateStatusCounts(List<Task> allTasks) {
         Map<TaskStatus, Integer> statusCount = new EnumMap<>(TaskStatus.class);
         for (TaskStatus taskStatus : TaskStatus.values()) {
@@ -22,6 +24,7 @@ public class TaskStatistics {
         return statusCount;
     }
 
+    //Расчёт по приоритету
     public Map<TaskPriority, Integer> calcuatePriorityCounts(List<Task> allTasks) {
         Map<TaskPriority, Integer> priorityCounts = new EnumMap<>(TaskPriority.class);
         for (TaskPriority taskPriority : TaskPriority.values()) {
@@ -35,6 +38,7 @@ public class TaskStatistics {
         return priorityCounts;
     }
 
+    //Расчёт процента выполненых задач
     public double calculateCompletionRate(List<Task> allTasks) {
         if (allTasks == null || allTasks.isEmpty()) return 0.0;
         long doneCount = allTasks.stream()
