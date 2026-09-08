@@ -3,7 +3,7 @@ package model;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Task {
+public class Task implements Identifiable<Integer>{
     private static final AtomicInteger idCounter = new AtomicInteger(1);
     private final int id;
     private String title;
@@ -21,7 +21,8 @@ public class Task {
         this.tags = new HashSet<>();
     }
 
-    public int getId() {
+    @Override
+    public Integer getId() {
         return id;
     }
 

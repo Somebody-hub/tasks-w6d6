@@ -1,12 +1,18 @@
 import model.*;
+import repository.*;
 import service.*;
 
 import java.util.*;
 
 public class Main {
-    private final Scanner sc = new Scanner(System.in);
-    private final TaskService taskService = new TaskService();
+    private final Scanner sc;
+    private final TaskService taskService;
 
+    public Main() {
+        Repository<Task, Integer> repository = new LocalRepository<>();
+        this.taskService = new TaskService(repository);
+        this.sc = new Scanner(System.in);
+    }
 
     public static void main(String[] args) {
         new Main().run();
@@ -81,8 +87,8 @@ public class Main {
     private void handleFindById() {
         System.out.println("--Find task by ID--");
         int id = rdInt("Enter id");
-        Task task = taskService.findById(id);
-        if (task != null) System.out.println(task);
+        Optional<Task> task = taskService.findById(id);
+        if (task.isPresent()) System.out.println(task.get());
         else System.out.println("Task not found");
     }
 
