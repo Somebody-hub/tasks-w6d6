@@ -4,6 +4,7 @@ import model.Task;
 
 import java.util.Comparator;
 
+//Сортирует задачи по названию
 public class TaskTitleComparator implements Comparator<Task> {
     @Override
     public int compare(Task o1, Task o2) {

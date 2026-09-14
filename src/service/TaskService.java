@@ -15,28 +15,40 @@ public class TaskService {
 
     private final TaskStatistics taskStatistics = new TaskStatistics();
 
-    //Добавляет задачу проверяет значения
+    //Принимает название задачи title, описание задачи description, приоритет задачи priority
+    //Создаёт объект Task, сохраняет его в репозитории
+    //Возвращает ссылку на созданую задачу
     public Task addTask(String title, String description, TaskPriority priority) {
         Task task = new Task(title, description, priority);
         repository.save(task);
         return task;
     }
 
-    //Печатает все задачи
+    //Ничего не принимает
+    //Обращается к репозиторию за списком всех задач
+    //Возвращает список всех задач
     public List<Task> getAllTasks() {
         return repository.findAll();
     }
 
-    //Поиск в Map по ID
+    //Принимает id задачи
+    //Вызывает репозиторий для поиска задачи по id. Передаёт id в репозитории
+    //Возвращает обёртку Optional (не)найденого объекта
     public Optional<Task> findById(int id) {
         return repository.findById(id);
     }
 
+    //Принимает id задачи
+    //Вызывает репозиторий для поиска задачи по id. Передаёт id в репозитории
+    //Возвращает boolean, находитсся ли задача в коллекции
     public boolean existById(int id) {
         return !repository.existsById(id);
     }
 
-    //Поиск по названию
+    //Приниает строку название задачи
+    //Обращается к репозиторию и получает список всех задач
+    //Ищет совпадение title строки с названиями задач в списке
+    //Возвращает список найденых задач
     public List<Task> findByTitle(String title) {
         if (title == null)
             throw new IllegalArgumentException("Invalid title");
@@ -48,7 +60,9 @@ public class TaskService {
                 .toList();
     }
 
-    //Смена статуса
+    //Принимает id задач и новый статус
+    //Ищет задачу в репозитории. Если задача найдена, меняет статус на новый. Сохраняет изменения
+    //Ничего не возвращает
     public void changeStatus(int id, TaskStatus newStatus) {
         Optional<Task> taskOptional = repository.findById(id);
         if (taskOptional.isPresent()) {
@@ -58,7 +72,9 @@ public class TaskService {
         }
     }
 
-    //Установка нового описания задачи
+    //Принимает id задач и новое описание
+    //Ищет задачу в репозитории. Если задача найдена, меняет описание на новое. Сохраняет изменения
+    //Ничего не возвращает
     public void changeDescription(int id, String description) {
         Optional<Task> taskOptional = repository.findById(id);
         if (taskOptional.isPresent()) {
@@ -68,7 +84,9 @@ public class TaskService {
         }
     }
 
-    //Смена приоритета
+    //Принимает id задач и новый приоритет
+    //Ищет задачу в репозитории. Если задача найдена, меняет приоритет на новый. Сохраняет изменения
+    //Ничего не возвращает
     public void changePriority(int id, TaskPriority newPriority) {
         Optional<Task> taskOptional = repository.findById(id);
         if (taskOptional.isPresent()) {
@@ -78,12 +96,16 @@ public class TaskService {
         }
     }
 
-    //Удаление задачи, проверка ID
+    //Принимает id задачи
+    //Вызывает метод удаления задачи в репозитории
+    //Возвращает упешность удаления
     public boolean removeTask(int id) {
         return repository.deleteById(id);
     }
 
-    //Добаление тэга
+    //Принимает id задачи и строку тэг, которую необходимо добавить
+    //Ищет задачу по id в репозитории. Добавляет ей тэг. Сохраняет изменения в репозиторий
+    //Возвращает успешность выполнения
     public boolean addTag(int id, String tag) {
         Optional<Task> taskOptional = repository.findById(id);
         if (taskOptional.isEmpty())
@@ -96,7 +118,9 @@ public class TaskService {
         return false;
     }
 
-    //Поиск задач по тэгам
+    //Принимает строку тэг
+    //Получает список всех задач. Перебирает список тэгов каждой задачи.
+    //Возвращает список найдеых задач
     public List<Task> findByTag(String tag) {
         if (tag == null || tag.isBlank()) return List.of();
         String searchTag = tag.trim().toLowerCase();
@@ -106,17 +130,23 @@ public class TaskService {
                 .toList();
     }
 
-    //Расчёт статистики статуса
+    //Ничего не принимает
+    //Расчитывает статистику задач по статусу
+    //Возвращает коллекцию найденных задач
     public Map<TaskStatus, Integer> countByStatus() {
         return taskStatistics.calculateStatusCounts(repository.findAll());
     }
 
-    //Расчёт статистики приоритетов
+    //Ничего не принимает
+    //Расчитывает статистику задач по приоритету
+    //Возвращает коллекцию найденных задач
     public Map<TaskPriority, Integer> countByPriority() {
         return taskStatistics.calculatePriorityCounts(repository.findAll());
     }
 
-    //Возвращает отсортиованный лист по приоритету
+    //Ничего не принимает
+    //Возвращает отсортированный список задач по приоритету
+    //Возвращает отсортированный список
     public List<Task> sortByPriority() {
         return repository.findAll().stream()
                 .sorted(new TaskPriorityComparator())
@@ -131,7 +161,9 @@ public class TaskService {
     }
 
 
-    //Вывод общей статистики
+    //Ничего не принимает
+    //Собирает строку из данных всех задач
+    //Возвращает строку общей статистики
     public String getProjectSummary() {
         List<Task> allTasks = repository.findAll();
         Map<TaskStatus, Integer> stats = countByStatus();
