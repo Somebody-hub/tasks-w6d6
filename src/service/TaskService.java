@@ -17,37 +17,14 @@ public class TaskService {
 
     //Добавляет задачу проверяет значения
     public Task addTask(String title, String description, TaskPriority priority) {
-        if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("The title can not be empty");
-        }
-        if (priority == null) {
-            throw new IllegalArgumentException("Wrong priority");
-        }
         Task task = new Task(title, description, priority);
-        return repository.save(task);
-    }
-
-    //Печатает задачи с листа
-    public void printTasks(List<Task> taskList) {
-        if (taskList == null || taskList.isEmpty()) {
-            System.out.println("Task list is empty.");
-            return;
-        }
-        for (Task task : taskList) {
-            System.out.println(task);
-        }
+        repository.save(task);
+        return task;
     }
 
     //Печатает все задачи
-    public void printAllTasks() {
-        List<Task> allTasks = repository.findAll(); //Что сделать 1 вызов в репозитоий
-        if (allTasks == null || allTasks.isEmpty()) {
-            System.out.println("Task list is empty.");
-            return;
-        }
-        for (Task task : allTasks) {
-            System.out.println(task);
-        }
+    public List<Task> getAllTasks() {
+        return repository.findAll();
     }
 
     //Поиск в Map по ID
@@ -55,9 +32,16 @@ public class TaskService {
         return repository.findById(id);
     }
 
+    public boolean existById(int id) {
+        return !repository.existsById(id);
+    }
+
     //Поиск по названию
     public List<Task> findByTitle(String title) {
-        if (title == null || title.isBlank()) return List.of();
+        if (title == null)
+            throw new IllegalArgumentException("Invalid title");
+        if (title.isBlank())
+            throw new IllegalArgumentException("Search query cannot be empty");
         String search = title.trim().toLowerCase();
         return repository.findAll().stream()
                 .filter(t -> t.getTitle().toLowerCase().contains(search))
@@ -65,33 +49,33 @@ public class TaskService {
     }
 
     //Смена статуса
-    public boolean changeStatus(int id, TaskStatus newStatus) {
-        if (newStatus == null) {
-            throw new IllegalArgumentException("Invalid status");
-        }
+    public void changeStatus(int id, TaskStatus newStatus) {
         Optional<Task> taskOptional = repository.findById(id);
         if (taskOptional.isPresent()) {
             Task task = taskOptional.get();
             task.setStatus(newStatus);
             repository.save(task);
-            return true;
         }
-        return false;
+    }
+
+    //Установка нового описания задачи
+    public void changeDescription(int id, String description) {
+        Optional<Task> taskOptional = repository.findById(id);
+        if (taskOptional.isPresent()) {
+            Task task = taskOptional.get();
+            task.setDescription(description);
+            repository.save(task);
+        }
     }
 
     //Смена приоритета
-    public boolean changePriority(int id, TaskPriority newPriority) {
-        if (newPriority == null) {
-            throw new IllegalArgumentException("Invalid status");
-        }
+    public void changePriority(int id, TaskPriority newPriority) {
         Optional<Task> taskOptional = repository.findById(id);
         if (taskOptional.isPresent()) {
             Task task = taskOptional.get();
             task.setPriority(newPriority);
             repository.save(task);
-            return true;
         }
-        return false;
     }
 
     //Удаление задачи, проверка ID
@@ -101,17 +85,13 @@ public class TaskService {
 
     //Добаление тэга
     public boolean addTag(int id, String tag) {
-        if (tag == null)
-            throw new IllegalArgumentException("Invalid tag");
-        if (tag.isBlank())
-            return false;
         Optional<Task> taskOptional = repository.findById(id);
-        if (taskOptional.isPresent()) {
-            Task task = taskOptional.get();
-            if (task.addTag(tag)) {
-                repository.save(task);
-                return true;
-            }
+        if (taskOptional.isEmpty())
+            throw new IllegalArgumentException("Task with ID " + id + " not found");
+        Task task = taskOptional.get();
+        if (task.addTag(tag)) {
+            repository.save(task);
+            return true;
         }
         return false;
     }
@@ -122,13 +102,18 @@ public class TaskService {
         String searchTag = tag.trim().toLowerCase();
         List<Task> allTasks = repository.findAll();
         return allTasks.stream()
-                .filter(t -> t.getTags().stream().anyMatch(x -> x.equalsIgnoreCase(searchTag)))
+                .filter(t -> t.getTags().contains(searchTag))
                 .toList();
     }
 
-    //Расчёт статуса
+    //Расчёт статистики статуса
     public Map<TaskStatus, Integer> countByStatus() {
         return taskStatistics.calculateStatusCounts(repository.findAll());
+    }
+
+    //Расчёт статистики приоритетов
+    public Map<TaskPriority, Integer> countByPriority() {
+        return taskStatistics.calculatePriorityCounts(repository.findAll());
     }
 
     //Возвращает отсортиованный лист по приоритету
@@ -145,18 +130,23 @@ public class TaskService {
                 .toList();
     }
 
+
     //Вывод общей статистики
     public String getProjectSummary() {
         List<Task> allTasks = repository.findAll();
         Map<TaskStatus, Integer> stats = countByStatus();
-        return String.format(
-                "Total tasks: %d | %s: %d | %s: %d | %s: %d (Completion: %.1f%%)",
-                allTasks.size(),
-                TaskStatus.NEW.getTaskStatusTitle(),
-                stats.getOrDefault(TaskStatus.NEW, 0),
-                TaskStatus.IN_PROGRESS.getTaskStatusTitle(), stats.getOrDefault(TaskStatus.IN_PROGRESS, 0),
-                TaskStatus.DONE.getTaskStatusTitle(), stats.getOrDefault(TaskStatus.DONE, 0),
-                taskStatistics.calculateCompletionRate(allTasks)
-        );
+        StringBuilder resultString = new StringBuilder();
+
+        resultString.append("Total tasks: ").append(allTasks.size());
+        for (TaskStatus taskStatus : TaskStatus.values()) {
+            resultString.append(" | ");
+            resultString.append(taskStatus.getTaskStatusTitle());
+            resultString.append(": ");
+            resultString.append(stats.getOrDefault(taskStatus, 0));
+        }
+        resultString.append(String.format(" ||(Completion: %.1f%%)", taskStatistics.calculateCompletionRate(allTasks)));
+        return resultString.toString();
     }
+
+
 }

@@ -20,48 +20,56 @@ public class Main {
 
     public void run() {
         boolean running = true;
-        final int allOptions = 13;
-        while (running) {
-            printMenu();
-            int choice = rdInt("Select option: ");
-            switch (choice) {
-                case 1 -> handleAddTask();
-                case 2 -> handleShowAllTasks();
-                case 3 -> handleFindById();
-                case 4 -> handleFindByTitle();
-                case 5 -> handleChangeStatus();
-                case 6 -> handleChangePriority();
-                case 7 -> handleDeleteTask();
-                case 8 -> handleAddTag();
-                case 9 -> handleFindByTag();
-                case 10 -> handleShowStatusStat();
-                case 11 -> handleSortByPriority();
-                case 12 -> handleSortByTitle();
-                case 13 -> handleShowProjectSumm();
-                case 0 -> {
-                    System.out.println("Exiting");
-                    running = false;
+        try {
+            while (running) {
+                printMenu();
+                int choice = rdInt("Select option: ");
+                switch (choice) {
+                    case 1 -> handleAddTask();
+                    case 2 -> handleShowAllTasks();
+                    case 3 -> handleFindById();
+                    case 4 -> handleFindByTitle();
+                    case 5 -> handleChangeDescription();
+                    case 6 -> handleChangeStatus();
+                    case 7 -> handleChangePriority();
+                    case 8 -> handleDeleteTask();
+                    case 9 -> handleAddTag();
+                    case 10 -> handleFindByTag();
+                    case 11 -> handleShowStatusStat();
+                    case 12 -> handleShowPriorityStats();
+                    case 13 -> handleSortByPriority();
+                    case 14 -> handleSortByTitle();
+                    case 15 -> handleShowProjectSumm();
+                    case 0 -> {
+                        System.out.println("Exiting");
+                        running = false;
+                    }
+                    default -> System.out.println("Invalid option. Try again");
                 }
-                default -> System.out.println("Invalid option. Try again");
+                if (running) rdString("Press Enter for menu");
             }
-            if (running && choice >= 1 && choice <= allOptions) rdString("Press Enter for menu");
+        } catch (NoSuchElementException e) {
+            System.out.println("\nInput canceled. Exiting...");
         }
     }
+
 
     private void printMenu() {
         System.out.println("1. Add task");
         System.out.println("2. Show all tasks");
         System.out.println("3. Find task by ID");
         System.out.println("4. Find task by title");
-        System.out.println("5. Change task status");
-        System.out.println("6. Change task priority");
-        System.out.println("7. Delete task");
-        System.out.println("8. Add tag to task");
-        System.out.println("9. Show tasks bytag");
-        System.out.println("10. Show status statistics");
-        System.out.println("11. Sort by priority");
-        System.out.println("12. Sort by title");
-        System.out.println("13. Show project summary");
+        System.out.println("5. Set new task description");
+        System.out.println("6. Change task status");
+        System.out.println("7. Change task priority");
+        System.out.println("8. Delete task");
+        System.out.println("9. Add tag to task");
+        System.out.println("10. Show tasks by tag");
+        System.out.println("11. Show status statistics");
+        System.out.println("12. Show priority statistics");
+        System.out.println("13. Sort by priority");
+        System.out.println("14. Sort by title");
+        System.out.println("15. Show project summary");
         System.out.println("0. Exit");
     }
 
@@ -71,7 +79,7 @@ public class Main {
         String description = rdString("Enter description");
         TaskPriority taskPriority = selectPriority();
         try {
-            Task task = taskService.addTask(title, description, taskPriority);
+            Task task = taskService.addTask(title, description, taskPriority); //DTO
             System.out.println("Task created successfully. ID: " + task.getId());
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -81,46 +89,91 @@ public class Main {
 
     private void handleShowAllTasks() {
         System.out.println("--All tasks--");
-        taskService.printAllTasks();
+        List<Task> allTasks = taskService.getAllTasks(); //DTO
+        if (allTasks == null || allTasks.isEmpty()) {
+            System.out.println("Task list is empty.");
+            return;
+        }
+        for (Task task : allTasks) {
+            System.out.println(task);
+        }
     }
 
     private void handleFindById() {
         System.out.println("--Find task by ID--");
         int id = rdInt("Enter id");
-        Optional<Task> task = taskService.findById(id);
+        Optional<Task> task = taskService.findById(id); //DTO
         if (task.isPresent()) System.out.println(task.get());
-        else System.out.println("Task not found");
+        else System.out.println("Task ID" + id + "not found");
     }
 
 
     private void handleFindByTitle() {
         System.out.println("--Find tasks by title--");
         String title = rdString("Enter title: ");
-        List<Task> foundTasks = taskService.findByTitle(title);
-        taskService.printTasks(foundTasks);
+        try {
+            List<Task> foundTasks = taskService.findByTitle(title); //DTO
+            printTasks(foundTasks);
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void handleChangeDescription() {
+        System.out.println("--Change description--");
+        int id = rdInt("Enter task ID: ");
+        if (taskService.existById(id)) {
+            System.out.println("Task ID" + id + "not found");
+            return;
+        }
+        String description = rdString("Enter new description: ");
+        try {
+            taskService.changeDescription(id, description);
+            System.out.println("Description updated");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void handleChangeStatus() {
         System.out.println("--Change task status--");
         int id = rdInt("Enter task ID: ");
+        if (taskService.existById(id)) {
+            System.out.println("Task ID" + id + "not found");
+            return;
+        }
         TaskStatus taskStatus = selectStatus();
-        boolean success = taskService.changeStatus(id, taskStatus);
-        if (success) System.out.println("Status updated");
-        else System.out.println("Task not found");
+        try {
+            taskService.changeStatus(id, taskStatus);
+            System.out.println("Status updated");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void handleChangePriority() {
         System.out.println("--Change task priority--");
         int id = rdInt("Enter task ID: ");
+        if (taskService.existById(id)) {
+            System.out.println("Task ID" + id + "not found");
+            return;
+        }
         TaskPriority taskPriority = selectPriority();
-        boolean success = taskService.changePriority(id, taskPriority);
-        if (success) System.out.println("Priority updated");
-        else System.out.println("Task not found");
+        try {
+            taskService.changePriority(id, taskPriority);
+            System.out.println("Priority updated");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void handleDeleteTask() {
         System.out.println("--Delete task--");
         int id = rdInt("Enter task ID: ");
+        if (taskService.existById(id)) {
+            System.out.println("Task ID" + id + "not found");
+            return;
+        }
         boolean success = taskService.removeTask(id);
         if (success) System.out.println("Task removed");
         else System.out.println("Task not found");
@@ -129,56 +182,79 @@ public class Main {
     private void handleAddTag() {
         System.out.println("--Add tag--");
         int id = rdInt("Enter ID: ");
+        if (taskService.existById(id)) {
+            System.out.println("Task ID" + id + "not found");
+            return;
+        }
         String tag = rdString("Enter tag: ");
-        boolean success = taskService.addTag(id, tag);
-        if (success) System.out.println("Tag added");
-        else System.out.println("Task not found or invalid tag");
+        try {
+            boolean success = taskService.addTag(id, tag);
+            if (success) System.out.println("Tag added");
+            else System.out.println("This tag already exists");
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private void handleFindByTag() {
         System.out.println("--Find tasks by tag--");
         String tag = rdString("Enter tag: ");
-        List<Task> foundTask = taskService.findByTag(tag);
-        taskService.printTasks(foundTask);
+        List<Task> foundTask = taskService.findByTag(tag); //DTO
+        printTasks(foundTask);
     }
 
     private void handleShowStatusStat() {
         System.out.println("--Status statistic--");
-        Map<TaskStatus, Integer> stats = taskService.countByStatus();
+        Map<TaskStatus, Integer> stats = taskService.countByStatus(); //DTO
         for (Map.Entry<TaskStatus, Integer> entry : stats.entrySet()) {
             System.out.println(entry.getKey().getTaskStatusTitle() + " " + entry.getValue() + " tasks");
         }
     }
 
+    private void handleShowPriorityStats() {
+        System.out.println("--Priority statistic--");
+        Map<TaskPriority, Integer> stats = taskService.countByPriority(); //DTO
+        for (Map.Entry<TaskPriority, Integer> entry : stats.entrySet()) {
+            System.out.println(entry.getKey().getPriorityTitle() + " " + entry.getValue() + " tasks");
+        }
+    }
+
+
     private void handleSortByPriority() {
         System.out.println("--Tasks by priority--");
-        taskService.printTasks(taskService.sortByPriority());
+        printTasks(taskService.sortByPriority()); //DTO
     }
 
     private void handleSortByTitle() {
         System.out.println("--Tasks by title--");
-        taskService.printTasks(taskService.sortByTitle());
+        printTasks(taskService.sortByTitle()); //DTO
     }
 
     private void handleShowProjectSumm() {
         System.out.println("--Project summary--");
-        System.out.println(taskService.getProjectSummary());
+        System.out.println(taskService.getProjectSummary()); //DTO
     }
 
     private int rdInt(String enterString) {
         while (true) {
             System.out.println(enterString);
+            if (!sc.hasNextLine()) {
+                throw new NoSuchElementException();
+            }
             String input = sc.nextLine().trim();
             try {
                 return Integer.parseInt(input);
             } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Try gain");
+                System.out.println("Invalid input. Try again");
             }
         }
     }
 
     private String rdString(String enterString) {
         System.out.println(enterString);
+        if (!sc.hasNextLine()) {
+            throw new NoSuchElementException();
+        }
         return sc.nextLine().trim();
     }
 
@@ -188,9 +264,9 @@ public class Main {
             System.out.println((i + 1) + ". " + taskStatuses[i].getTaskStatusTitle());
         }
         while (true) {
-            int choise = rdInt("Select status");
-            if (choise <= taskStatuses.length && choise > 0) {
-                return taskStatuses[choise - 1];
+            int choose = rdInt("Select status");
+            if (choose <= taskStatuses.length && choose > 0) {
+                return taskStatuses[choose - 1];
             } else {
                 System.out.println("Wrong input. Try again");
             }
@@ -203,12 +279,23 @@ public class Main {
             System.out.println((i + 1) + ". " + taskPriorities[i].getPriorityTitle());
         }
         while (true) {
-            int choise = rdInt("Select priority");
-            if (choise <= taskPriorities.length && choise > 0) {
-                return taskPriorities[choise - 1];
+            int choose = rdInt("Select priority");
+            if (choose <= taskPriorities.length && choose > 0) {
+                return taskPriorities[choose - 1];
             } else {
                 System.out.println("Wrong input. Try again");
             }
         }
     }
+
+    public void printTasks(List<Task> taskList) {
+        if (taskList == null || taskList.isEmpty()) {
+            System.out.println("No tasks found");
+            return;
+        }
+        for (Task task : taskList) {
+            System.out.println(task);
+        }
+    }
+
 }

@@ -3,7 +3,7 @@ package model;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Task implements Identifiable<Integer>{
+public final class Task implements Identifiable<Integer> {
     private static final AtomicInteger idCounter = new AtomicInteger(1);
     private final int id;
     private String title;
@@ -13,8 +13,10 @@ public class Task implements Identifiable<Integer>{
     private final Set<String> tags;
 
     public Task(String title, String description, TaskPriority taskPriority) {
+        if (title == null || title.isBlank()) throw new IllegalArgumentException("The title can not be empty");
+        if (taskPriority == null) throw new IllegalArgumentException("Wrong priority");
         this.id = idCounter.getAndIncrement();
-        this.title = title == null ? "" : title.trim();
+        this.title = title.trim();
         this.description = description == null ? "" : description.trim();
         this.priority = taskPriority;
         this.status = TaskStatus.NEW;
@@ -47,40 +49,46 @@ public class Task implements Identifiable<Integer>{
     }
 
     public void setTitle(String title) {
-        if (title != null || !title.isBlank()) {
-            this.title = title.trim();
-        }
+        if (title == null)
+            throw new IllegalArgumentException("Invalid title");
+        if (title.isBlank())
+            throw new IllegalArgumentException("The title cannot be empty");
+        this.title = title.trim();
     }
 
     public void setDescription(String description) {
         if (description != null) {
-            this.description = description.trim();
+            this.description = description;
         }
     }
 
     public void setPriority(TaskPriority priority) {
-        if (priority != null) {
-            this.priority = priority;
+        if (priority == null) {
+            throw new IllegalArgumentException("Invalid priority");
         }
+        this.priority = priority;
     }
 
     public void setStatus(TaskStatus status) {
-        if (status != null) {
-            this.status = status;
+        if (status == null) {
+            throw new IllegalArgumentException("Invalid status");
         }
+        this.status = status;
     }
 
     public boolean addTag(String tag) {
-        if (tag == null || tag.isBlank()) return false;
+        if (tag == null)
+            throw new IllegalArgumentException("Invalid tag");
+        if (tag.isBlank())
+            throw new IllegalArgumentException("The tag cannot be empty");
         return this.tags.add(tag.trim().toLowerCase());
     }
 
     @Override
     public boolean equals(Object o) {
         if (o == this) return true;
-        if (o == null) return false;
-        Task task = (Task) o;
-        return task.id == this.id;
+        if (!(o instanceof Task task)) return false;
+        return Objects.equals(task.getId(), this.getId());
     }
 
     @Override

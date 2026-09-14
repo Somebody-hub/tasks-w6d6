@@ -25,7 +25,7 @@ public class TaskStatistics {
     }
 
     //Расчёт по приоритету
-    public Map<TaskPriority, Integer> calcuatePriorityCounts(List<Task> allTasks) {
+    public Map<TaskPriority, Integer> calculatePriorityCounts(List<Task> allTasks) {
         Map<TaskPriority, Integer> priorityCounts = new EnumMap<>(TaskPriority.class);
         for (TaskPriority taskPriority : TaskPriority.values()) {
             priorityCounts.put(taskPriority, 0);

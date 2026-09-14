@@ -11,16 +11,10 @@ public class LocalRepository<T extends Identifiable<ID>, ID> implements Reposito
 
     @Override
     public T save(T entity) {
-        if (entity == null || entity.getId() == null){
+        if (entity == null || entity.getId() == null) {
             throw new IllegalArgumentException("Entity or ID can not be null");
         }
-        if(findById(entity.getId()).isPresent()){
-            int index = items.indexOf(entity);
-            if(index != -1){
-                items.set(index, entity);
-            }
-        }
-        else{
+        if (findById(entity.getId()).isEmpty()) {
             items.add(entity);
         }
         itemsById.put(entity.getId(), entity);
@@ -40,7 +34,7 @@ public class LocalRepository<T extends Identifiable<ID>, ID> implements Reposito
     @Override
     public boolean deleteById(ID id) {
         T removed = itemsById.remove(id);
-        if(removed!= null){
+        if (removed != null) {
             items.remove(removed);
             return true;
         }
